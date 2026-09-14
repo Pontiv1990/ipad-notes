@@ -31,7 +31,7 @@
             height: 100%;
             width: 100%;
         }
-        /* Панель настроек и действий с файлами */
+        /* Панель настроек */
         .toolbar {
             background-color: rgba(40, 40, 40, 0.90);
             color: #ffffff;
@@ -50,7 +50,7 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
             transition: max-height 0.3s ease, padding 0.3s ease;
             overflow: hidden;
-            max-height: 180px;
+            max-height: 200px;
         }
         .toolbar.hidden {
             max-height: 0;
@@ -96,7 +96,6 @@
             padding: 0;
             cursor: pointer;
         }
-        /* Кнопки файлов */
         .action-btn {
             background-color: #444;
             color: #fff;
@@ -110,11 +109,10 @@
         .action-btn:active {
             background-color: #666;
         }
-        /* Скрытый инпут для выбора файла */
         #fileInput {
             display: none;
         }
-        /* Невидимая область-кнопка в правом верхнем углу */
+        /* Невидимая область-кнопка в правом верхнем углу (50x50px) */
         .toggle-btn {
             position: absolute;
             top: 0;
@@ -142,13 +140,13 @@
             line-height: 1.5;
             padding: 16px;
             font-family: -apple-system, Helvetica Neue, Helvetica, Arial, sans-serif;
+            text-align: justify; /* Выравнивание по ширине по умолчанию */
             -webkit-appearance: none;
         }
     </style>
 </head>
 <body>
 
-    <!-- Невидимая кнопка переключения в правом верхнем углу (50x50px) -->
     <button class="toggle-btn" id="toggleBtn"></button>
 
     <div class="app-container">
@@ -174,6 +172,15 @@
                         <option value="24px">24 px</option>
                         <option value="28px">28 px</option>
                         <option value="32px">32 px</option>
+                    </select>
+                </div>
+
+                <div class="setting-item">
+                    <label for="textAlign">Выравнивание:</label>
+                    <select id="textAlign">
+                        <option value="justify" selected>По ширине</option>
+                        <option value="left">По левому краю</option>
+                        <option value="center">По центру</option>
                     </select>
                 </div>
 
@@ -205,17 +212,18 @@
             var toggleBtn = document.getElementById('toggleBtn');
             var fontFamilySelect = document.getElementById('fontFamily');
             var fontSizeSelect = document.getElementById('fontSize');
+            var textAlignSelect = document.getElementById('textAlign');
             var textColorInput = document.getElementById('textColor');
             var bgColorInput = document.getElementById('bgColor');
             var openBtn = document.getElementById('openBtn');
             var saveTxtBtn = document.getElementById('saveTxtBtn');
             var fileInput = document.getElementById('fileInput');
 
-            // Загрузка сохраненных настроек и текста
             function loadSettings() {
                 var savedText = localStorage.getItem('ipad_note_text_v2');
                 var savedFontFamily = localStorage.getItem('ipad_note_font_family');
                 var savedFontSize = localStorage.getItem('ipad_note_font_size');
+                var savedTextAlign = localStorage.getItem('ipad_note_text_align');
                 var savedTextColor = localStorage.getItem('ipad_note_text_color');
                 var savedBgColor = localStorage.getItem('ipad_note_bg_color');
 
@@ -231,6 +239,11 @@
                     editor.style.fontSize = savedFontSize;
                 }
 
+                if (savedTextAlign) {
+                    textAlignSelect.value = savedTextAlign;
+                    editor.style.textAlign = savedTextAlign;
+                }
+
                 if (savedTextColor) {
                     textColorInput.value = savedTextColor;
                     editor.style.color = savedTextColor;
@@ -242,16 +255,15 @@
                 }
             }
 
-            // Автосохранение
             function saveSettings() {
                 localStorage.setItem('ipad_note_text_v2', editor.value);
                 localStorage.setItem('ipad_note_font_family', fontFamilySelect.value);
                 localStorage.setItem('ipad_note_font_size', fontSizeSelect.value);
+                localStorage.setItem('ipad_note_text_align', textAlignSelect.value);
                 localStorage.setItem('ipad_note_text_color', textColorInput.value);
                 localStorage.setItem('ipad_note_bg_color', bgColorInput.value);
             }
 
-            // Слушатели событий
             editor.addEventListener('input', saveSettings);
 
             fontFamilySelect.addEventListener('change', function() {
@@ -261,6 +273,11 @@
 
             fontSizeSelect.addEventListener('change', function() {
                 editor.style.fontSize = this.value;
+                saveSettings();
+            });
+
+            textAlignSelect.addEventListener('change', function() {
+                editor.style.textAlign = this.value;
                 saveSettings();
             });
 
@@ -274,7 +291,6 @@
                 saveSettings();
             });
 
-            // Открытие .txt файла
             openBtn.addEventListener('click', function() {
                 fileInput.click();
             });
@@ -289,11 +305,9 @@
                     saveSettings();
                 };
                 reader.readAsText(file);
-                // Сбрасываем значение, чтобы можно было открыть тот же файл снова при необходимости
                 fileInput.value = '';
             });
 
-            // Сохранение в .txt файл (совместимо со старым Safari/iOS)
             saveTxtBtn.addEventListener('click', function() {
                 var text = editor.value;
                 var blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
@@ -312,7 +326,6 @@
                 }
             });
 
-            // Показать / скрыть панель настроек по клику на невидимый угол
             toggleBtn.addEventListener('click', function() {
                 toolbar.classList.toggle('hidden');
             });
