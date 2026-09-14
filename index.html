@@ -50,7 +50,7 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
             transition: max-height 0.3s ease, padding 0.3s ease;
             overflow: hidden;
-            max-height: 200px;
+            max-height: 240px;
         }
         .toolbar.hidden {
             max-height: 0;
@@ -138,9 +138,12 @@
             color: #000000;
             font-size: 20px;
             line-height: 1.5;
-            padding: 16px;
+            padding-top: 16px;
+            padding-bottom: 16px;
+            padding-left: 16px;
+            padding-right: 16px;
             font-family: -apple-system, Helvetica Neue, Helvetica, Arial, sans-serif;
-            text-align: justify; /* Выравнивание по ширине по умолчанию */
+            text-align: justify;
             -webkit-appearance: none;
         }
     </style>
@@ -185,6 +188,17 @@
                 </div>
 
                 <div class="setting-item">
+                    <label for="paddingSide">Отступы по бокам:</label>
+                    <select id="paddingSide">
+                        <option value="0px">Без отступов (0 px)</option>
+                        <option value="16px" selected>Узкие (16 px)</option>
+                        <option value="32px">Средние (32 px)</option>
+                        <option value="60px">Широкие (60 px)</option>
+                        <option value="100px">Очень широкие (100 px)</option>
+                    </select>
+                </div>
+
+                <div class="setting-item">
                     <label for="textColor">Текст:</label>
                     <input type="color" id="textColor" value="#000000">
                 </div>
@@ -213,6 +227,7 @@
             var fontFamilySelect = document.getElementById('fontFamily');
             var fontSizeSelect = document.getElementById('fontSize');
             var textAlignSelect = document.getElementById('textAlign');
+            var paddingSideSelect = document.getElementById('paddingSide');
             var textColorInput = document.getElementById('textColor');
             var bgColorInput = document.getElementById('bgColor');
             var openBtn = document.getElementById('openBtn');
@@ -224,6 +239,7 @@
                 var savedFontFamily = localStorage.getItem('ipad_note_font_family');
                 var savedFontSize = localStorage.getItem('ipad_note_font_size');
                 var savedTextAlign = localStorage.getItem('ipad_note_text_align');
+                var savedPaddingSide = localStorage.getItem('ipad_note_padding_side');
                 var savedTextColor = localStorage.getItem('ipad_note_text_color');
                 var savedBgColor = localStorage.getItem('ipad_note_bg_color');
 
@@ -244,6 +260,12 @@
                     editor.style.textAlign = savedTextAlign;
                 }
 
+                if (savedPaddingSide) {
+                    paddingSideSelect.value = savedPaddingSide;
+                    editor.style.paddingLeft = savedPaddingSide;
+                    editor.style.paddingRight = savedPaddingSide;
+                }
+
                 if (savedTextColor) {
                     textColorInput.value = savedTextColor;
                     editor.style.color = savedTextColor;
@@ -260,6 +282,7 @@
                 localStorage.setItem('ipad_note_font_family', fontFamilySelect.value);
                 localStorage.setItem('ipad_note_font_size', fontSizeSelect.value);
                 localStorage.setItem('ipad_note_text_align', textAlignSelect.value);
+                localStorage.setItem('ipad_note_padding_side', paddingSideSelect.value);
                 localStorage.setItem('ipad_note_text_color', textColorInput.value);
                 localStorage.setItem('ipad_note_bg_color', bgColorInput.value);
             }
@@ -278,6 +301,12 @@
 
             textAlignSelect.addEventListener('change', function() {
                 editor.style.textAlign = this.value;
+                saveSettings();
+            });
+
+            paddingSideSelect.addEventListener('change', function() {
+                editor.style.paddingLeft = this.value;
+                editor.style.paddingRight = this.value;
                 saveSettings();
             });
 
