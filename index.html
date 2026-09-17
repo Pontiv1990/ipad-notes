@@ -245,6 +245,9 @@
             var saveTxtBtn = document.getElementById('saveTxtBtn');
             var fileInput = document.getElementById('fileInput');
 
+            // 1. ИСПРАВЛЕНИЕ ДЛЯ ОТКРЫТИЯ ФАЙЛОВ НА IPAD (убираем фильтры)
+            fileInput.removeAttribute('accept');
+
             function loadSettings() {
                 var savedText = localStorage.getItem('ipad_note_text_v2');
                 var savedFontFamily = localStorage.getItem('ipad_note_font_family');
@@ -348,22 +351,13 @@
                 fileInput.value = '';
             });
 
+            // 2. ИСПРАВЛЕНИЕ ДЛЯ СОХРАНЕНИЯ НА IPAD (открывает текст в новой вкладке)
             saveTxtBtn.addEventListener('click', function() {
                 var text = editor.value;
-                var blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-                var fileName = 'note_' + new Date().toISOString().slice(0, 10) + '.txt';
-
-                if (navigator.msSaveBlob) {
-                    navigator.msSaveBlob(blob, fileName);
-                } else {
-                    var link = document.createElement('a');
-                    link.href = URL.createObjectURL(blob);
-                    link.download = fileName;
-                    link.target = '_blank';
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                }
+                var dataUri = 'data:text/plain;charset=utf-8,' + encodeURIComponent(text);
+                
+                // Пробуем открывать файл в новой вкладке для скачивания/скопирования на iOS
+                window.open(dataUri, '_blank');
             });
 
             toggleBtn.addEventListener('click', function() {
@@ -373,5 +367,6 @@
             loadSettings();
         })();
     </script>
+  
 </body>
 </html>
