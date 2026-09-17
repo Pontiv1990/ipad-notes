@@ -7,8 +7,9 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>WRITING Заметки</title>
     
-    <!-- ИКОНКА ДЛЯ ЭКРАНА «ДОМОЙ» -->
+    <!-- ИКОНКИ ДЛЯ ЭКРАНА «ДОМОЙ» И ВКЛАДКИ БРАУЗЕРА -->
     <link rel="apple-touch-icon" href="logo.png">
+    <link rel="icon" type="image/png" href="logo.png">
 
     <style>
         * {
@@ -223,7 +224,8 @@
             <div class="toolbar-section">
                 <button class="action-btn" id="openBtn">📂 Открыть .txt</button>
                 <button class="action-btn" id="saveTxtBtn">💾 Сохранить .txt</button>
-                <input type="file" id="fileInput" accept=".txt,text/plain">
+                <!-- Поддержка универсального Mime-type для отмены блокировок iOS -->
+                <input type="file" id="fileInput" accept="text/plain, text/*, .txt">
             </div>
         </div>
 
@@ -244,9 +246,6 @@
             var openBtn = document.getElementById('openBtn');
             var saveTxtBtn = document.getElementById('saveTxtBtn');
             var fileInput = document.getElementById('fileInput');
-
-            // 1. ИСПРАВЛЕНИЕ ДЛЯ ОТКРЫТИЯ ФАЙЛОВ НА IPAD (убираем фильтры)
-            fileInput.removeAttribute('accept');
 
             function loadSettings() {
                 var savedText = localStorage.getItem('ipad_note_text_v2');
@@ -334,7 +333,9 @@
                 saveSettings();
             });
 
-            openBtn.addEventListener('click', function() {
+            // Открытие файла
+            openBtn.addEventListener('click', function(e) {
+                e.preventDefault();
                 fileInput.click();
             });
 
@@ -351,13 +352,26 @@
                 fileInput.value = '';
             });
 
-            // 2. ИСПРАВЛЕНИЕ ДЛЯ СОХРАНЕНИЯ НА IPAD (открывает текст в новой вкладке)
-            saveTxtBtn.addEventListener('click', function() {
+            // Надёжное сохранение файлов на iOS/iPadOS
+            saveTxtBtn.addEventListener('click', function(e) {
+                e.preventDefault();
                 var text = editor.value;
-                var dataUri = 'data:text/plain;charset=utf-8,' + encodeURIComponent(text);
+                var fileName = 'note_' + new Date().toISOString().slice(0, 10) + '.txt';
                 
-                // Пробуем открывать файл в новой вкладке для скачивания/скопирования на iOS
-                window.open(dataUri, '_blank');
+                var blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+                var url = URL.createObjectURL(blob);
+                
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
+
+                setTimeout(function() {
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, 1000);
             });
 
             toggleBtn.addEventListener('click', function() {
@@ -367,6 +381,5 @@
             loadSettings();
         })();
     </script>
-  
 </body>
 </html>
