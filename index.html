@@ -296,7 +296,8 @@
                     <input type="file" id="fileInput" accept="text/plain,.txt">
                 </span>
                 <button class="action-btn" id="saveTxtBtn">💾 Сохранить .txt</button>
-                <div style="width:100%;font-size:11px;color:#ddd;text-align:center;padding:2px 8px 0;">iOS 10: для .txt нужен iCloud Drive; запуск с иконки оставлен в Safari, не в PWA-режиме.</div>
+                <button class="action-btn" id="notesExportBtn">📝 В Заметки</button>
+                <div style="width:100%;font-size:11px;color:#ddd;text-align:center;padding:2px 8px 0;">iOS 10: «В Заметки» копирует весь текст и открывает Apple Notes. Для .txt нужен iCloud Drive.</div>
             </div>
         </div>
 
@@ -330,6 +331,7 @@
             var textColorInput = document.getElementById('textColor');
             var bgColorInput = document.getElementById('bgColor');
             var saveTxtBtn = document.getElementById('saveTxtBtn');
+            var notesExportBtn = document.getElementById('notesExportBtn');
             var fileInput = document.getElementById('fileInput');
             var exportOverlay = document.getElementById('exportOverlay');
             var exportText = document.getElementById('exportText');
@@ -491,6 +493,58 @@
                     fileInput.value = '';
                 };
                 reader.readAsText(file, 'UTF-8');
+            });
+
+            // Экспорт в Apple Notes для старого iOS:
+            // браузер не может программно создать заметку с готовым текстом,
+            // поэтому копируем весь текст в буфер и открываем приложение «Заметки».
+            notesExportBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                var text = editor.value;
+                saveSettings();
+
+                // На iOS 10 execCommand('copy') надёжнее вызывать прямо
+                // из обработчика пользовательского нажатия.
+                var start = editor.selectionStart;
+                var end = editor.selectionEnd;
+                var copied = false;
+
+                editor.focus();
+                try {
+                    editor.setSelectionRange(0, editor.value.length);
+                    copied = !!(document.execCommand && document.execCommand('copy'));
+                } catch (copyError) {
+                    copied = false;
+                }
+
+                // По возможности возвращаем прежнее выделение.
+                try {
+                    editor.setSelectionRange(start || 0, end || 0);
+                } catch (selectionError) {}
+
+                if (!copied) {
+                    pendingExportText = text;
+                    pendingExportName = makeFileName();
+                    exportText.value = text;
+                    exportHelp.innerHTML = 'Safari не разрешил автоматическое копирование. Нажмите «Скопировать всё», затем откройте «Заметки» и вставьте текст.';
+                    exportStatus.innerHTML = 'Текст сохранён внутри редактора.';
+                    exportOverlay.className = 'export-overlay visible';
+                    return;
+                }
+
+                // Неформальная системная схема старых iOS: просто открывает Notes.
+                // Содержимое передать через неё нельзя — оно уже находится в буфере.
+                try {
+                    window.location.href = 'mobilenotes://';
+                } catch (notesError) {
+                    pendingExportText = text;
+                    pendingExportName = makeFileName();
+                    exportText.value = text;
+                    exportHelp.innerHTML = 'Текст скопирован. Откройте приложение «Заметки», создайте заметку и нажмите «Вставить».';
+                    exportStatus.innerHTML = 'Текст уже в буфере обмена.';
+                    exportOverlay.className = 'export-overlay visible';
+                }
             });
 
             // Сохранение без async/await — синтаксис совместим со старым Safari.
