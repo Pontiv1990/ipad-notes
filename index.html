@@ -1,14 +1,17 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- ВАЖНО ДЛЯ iOS 10: не включаем standalone/PWA. Иконка с Home Screen открывает страницу в Safari, где Document Picker работает полнее. -->
-    <meta name="apple-mobile-web-app-capable" content="no">
+
+    <!-- iOS Home Screen standalone mode: hides Safari chrome.
+         iOS still keeps its system status bar; black-translucent lets the page extend underneath it. -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>WRITING Заметки</title>
-    
-    <!-- ИКОНКИ ДЛЯ ЭКРАНА «ДОМОЙ» И ВКЛАДКИ БРАУЗЕРА -->
+    <meta name="apple-mobile-web-app-title" content="WRITING">
+
+    <title>WRITING</title>
+
     <link rel="apple-touch-icon" href="logo.png">
     <link rel="icon" type="image/png" href="logo.png">
 
@@ -17,6 +20,7 @@
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
         }
+
         html, body {
             margin: 0;
             padding: 0;
@@ -24,8 +28,9 @@
             height: 100%;
             background-color: #898989;
             overflow: hidden;
-            font-family: -apple-system, Helvetica Neue, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
         }
+
         .app-container {
             display: -webkit-box;
             display: -webkit-flex;
@@ -34,44 +39,39 @@
             -webkit-box-direction: normal;
             -webkit-flex-direction: column;
             flex-direction: column;
-            height: 100%;
             width: 100%;
+            height: 100%;
         }
+
         .toolbar {
-            background-color: rgba(40, 40, 40, 0.90);
-            color: #ffffff;
-            padding: 10px 12px;
+            background-color: rgba(40, 40, 40, 0.94);
+            color: #fff;
+            padding: 28px 12px 10px 12px;
             display: -webkit-box;
             display: -webkit-flex;
             display: flex;
             -webkit-box-align: center;
             -webkit-align-items: center;
             align-items: center;
-            -webkit-justify-content: space-around;
-            justify-content: space-around;
+            -webkit-justify-content: center;
+            justify-content: center;
+            -webkit-flex-wrap: wrap;
             flex-wrap: wrap;
             font-size: 13px;
             z-index: 10;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-            transition: max-height 0.3s ease, padding 0.3s ease;
+            border-bottom: 1px solid rgba(255,255,255,0.18);
             overflow: hidden;
-            max-height: 240px;
+            max-height: 300px;
+            -webkit-transition: max-height 0.25s ease, padding 0.25s ease;
+            transition: max-height 0.25s ease, padding 0.25s ease;
         }
+
         .toolbar.hidden {
             max-height: 0;
             padding: 0 12px;
             border-bottom: none;
         }
-        .toolbar-section {
-            display: -webkit-box;
-            display: -webkit-flex;
-            display: flex;
-            -webkit-box-align: center;
-            -webkit-align-items: center;
-            align-items: center;
-            flex-wrap: wrap;
-            margin: 4px 0;
-        }
+
         .setting-item {
             display: -webkit-box;
             display: -webkit-flex;
@@ -81,12 +81,16 @@
             align-items: center;
             margin: 4px 6px;
         }
+
         .setting-item label {
             margin-right: 6px;
             font-size: 12px;
             color: #ddd;
+            white-space: nowrap;
         }
-        select, input[type="color"] {
+
+        select,
+        input[type="color"] {
             background-color: #333;
             color: #fff;
             border: 1px solid #666;
@@ -95,109 +99,30 @@
             font-size: 13px;
             outline: none;
         }
+
         input[type="color"] {
             width: 30px;
             height: 28px;
             padding: 0;
-            cursor: pointer;
-        }
-        .action-btn {
-            background-color: #444;
-            color: #fff;
-            border: 1px solid #777;
-            border-radius: 4px;
-            padding: 6px 12px;
-            font-size: 13px;
-            margin: 4px 6px;
-            cursor: pointer;
-            display: inline-block;
-            text-decoration: none;
-            text-align: center;
-        }
-        .action-btn:active {
-            background-color: #666;
-        }
-        /* На старом iOS input[type=file] нельзя прятать через display:none:
-           пользователь должен нажимать именно на настоящий input. */
-        .file-picker {
-            position: relative;
-            overflow: hidden;
-        }
-        #fileInput {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            font-size: 60px;
-            cursor: pointer;
-            display: block;
         }
 
-        .export-overlay {
-            display: none;
-            position: fixed;
-            left: 0;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            z-index: 100;
-            background: rgba(0, 0, 0, 0.72);
-            padding: 18px;
-            overflow: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-        .export-overlay.visible {
-            display: block;
-        }
-        .export-box {
-            max-width: 720px;
-            margin: 20px auto;
-            padding: 14px;
-            background: #2d2d2d;
-            color: #fff;
-            border: 1px solid #777;
-            border-radius: 6px;
-            font-size: 14px;
-            line-height: 1.4;
-        }
-        .export-box p {
-            margin: 8px 0 12px 0;
-        }
-        #exportText {
-            width: 100%;
-            height: 220px;
-            padding: 10px;
-            border: 1px solid #777;
-            background: #fff;
-            color: #000;
-            font: 16px/1.4 monospace;
-            text-align: left;
-            -webkit-user-select: text;
-            user-select: text;
-        }
-        .export-actions {
-            margin-top: 10px;
-        }
-        #exportStatus {
-            min-height: 20px;
-            color: #ddd;
-            margin-top: 8px;
-        }
+        /* Invisible hot corner: tap the upper-right area to show/hide settings. */
         .toggle-btn {
             position: absolute;
-            top: 0;
+            top: 20px;
             right: 0;
             z-index: 20;
+            width: 56px;
+            height: 56px;
+            padding: 0;
+            margin: 0;
+            border: 0;
             background: transparent;
-            border: none;
-            width: 50px;
-            height: 50px;
-            cursor: pointer;
             outline: none;
+            -webkit-appearance: none;
         }
-        textarea {
+
+        #editor {
             -webkit-box-flex: 1;
             -webkit-flex: 1;
             flex: 1;
@@ -210,11 +135,11 @@
             color: #000000;
             font-size: 20px;
             line-height: 1.5;
-            padding-top: 16px;
-            padding-bottom: 16px;
+            padding-top: 50px;
+            padding-bottom: 50px;
             padding-left: 16px;
             padding-right: 16px;
-            font-family: -apple-system, Helvetica Neue, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
             text-align: justify;
             -webkit-appearance: none;
         }
@@ -222,46 +147,46 @@
 </head>
 <body>
 
-    <button class="toggle-btn" id="toggleBtn"></button>
+    <button class="toggle-btn" id="toggleBtn" aria-label="Settings"></button>
 
     <div class="app-container">
         <div class="toolbar hidden" id="toolbar">
-            <div class="toolbar-section">
-                <div class="setting-item">
-                    <label for="fontFamily">Шрифт:</label>
-                    <select id="fontFamily">
-                        <option value="-apple-system, Helvetica Neue, Helvetica, Arial, sans-serif">Стандартный</option>
-                        <option value="Georgia, serif">Georgia (Засечки)</option>
-                        <option value="'Courier New', Courier, monospace">Monospace (Код)</option>
-                        <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
-                        <option value="Verdana, sans-serif">Verdana</option>
-                    </select>
-                </div>
 
-                <div class="setting-item">
-                    <label for="fontSize">Размер:</label>
-                    <select id="fontSize">
-                        <option value="16px">16 px</option>
-                        <option value="18px">18 px</option>
-                        <option value="20px" selected>20 px</option>
-                        <option value="24px">24 px</option>
-                        <option value="28px">28 px</option>
-                        <option value="32px">32 px</option>
-                    </select>
-                </div>
+            <div class="setting-item">
+                <label for="fontFamily">Font</label>
+                <select id="fontFamily">
+                    <option value="-apple-system, Helvetica Neue, Helvetica, Arial, sans-serif">System</option>
+                    <option value="Georgia, serif">Georgia</option>
+                    <option value="'Courier New', Courier, monospace">Monospace</option>
+                    <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
+                    <option value="Verdana, sans-serif">Verdana</option>
+                </select>
+            </div>
 
-                <div class="setting-item">
-                    <label for="textAlign">Выравнивание:</label>
-                    <select id="textAlign">
-                        <option value="justify" selected>По ширине</option>
-                        <option value="left">По левому краю</option>
-                        <option value="center">По центру</option>
-                    </select>
-                </div>
+            <div class="setting-item">
+                <label for="fontSize">Size</label>
+                <select id="fontSize">
+                    <option value="16px">16 px</option>
+                    <option value="18px">18 px</option>
+                    <option value="20px" selected>20 px</option>
+                    <option value="24px">24 px</option>
+                    <option value="28px">28 px</option>
+                    <option value="32px">32 px</option>
+                </select>
+            </div>
 
-                <div class="setting-item">
-                    <label for="paddingSide">Отступы по бокам:</label>
-                    <select id="paddingSide">
+            <div class="setting-item">
+                <label for="textAlign">Align</label>
+                <select id="textAlign">
+                    <option value="justify" selected>Justify</option>
+                    <option value="left">Left</option>
+                    <option value="center">Center</option>
+                </select>
+            </div>
+
+            <div class="setting-item">
+                <label for="paddingSide">Side padding</label>
+                <select id="paddingSide">
                         <option value="0px">0 px</option>
                         <option value="16px" selected>16 px</option>
                         <option value="25px">25 px</option>
@@ -276,47 +201,42 @@
                         <option value="250px">250 px</option>
                         <option value="275px">275 px</option>
                         <option value="300px">300 px</option>
-                    </select>
-                </div>
-
-                <div class="setting-item">
-                    <label for="textColor">Текст:</label>
-                    <input type="color" id="textColor" value="#000000">
-                </div>
-
-                <div class="setting-item">
-                    <label for="bgColor">Фон:</label>
-                    <input type="color" id="bgColor" value="#898989">
-                </div>
+                </select>
             </div>
 
-            <div class="toolbar-section">
-                <!-- Старый iOS: настоящий input расположен поверх кнопки и получает касание напрямую -->
-                <span class="action-btn file-picker" id="openBtn">📂 Открыть .txt
-                    <input type="file" id="fileInput" accept="text/plain,.txt">
-                </span>
-                <button class="action-btn" id="saveTxtBtn">💾 Сохранить .txt</button>
-                <button class="action-btn" id="notesExportBtn">📝 В Заметки</button>
-                <div style="width:100%;font-size:11px;color:#ddd;text-align:center;padding:2px 8px 0;">iOS 10: «В Заметки» копирует весь текст и открывает Apple Notes. Для .txt нужен iCloud Drive.</div>
+            <div class="setting-item">
+                <label for="paddingVertical">Top / bottom</label>
+                <select id="paddingVertical">
+                        <option value="0px">0 px</option>
+                        <option value="16px">16 px</option>
+                        <option value="25px">25 px</option>
+                        <option value="50px" selected>50 px</option>
+                        <option value="75px">75 px</option>
+                        <option value="100px">100 px</option>
+                        <option value="125px">125 px</option>
+                        <option value="150px">150 px</option>
+                        <option value="175px">175 px</option>
+                        <option value="200px">200 px</option>
+                        <option value="225px">225 px</option>
+                        <option value="250px">250 px</option>
+                        <option value="275px">275 px</option>
+                        <option value="300px">300 px</option>
+                </select>
             </div>
+
+            <div class="setting-item">
+                <label for="textColor">Text</label>
+                <input type="color" id="textColor" value="#000000">
+            </div>
+
+            <div class="setting-item">
+                <label for="bgColor">Background</label>
+                <input type="color" id="bgColor" value="#898989">
+            </div>
+
         </div>
 
-        <textarea id="editor" placeholder="Начните писать..."></textarea>
-    </div>
-
-    <!-- Резервный экспорт для iOS 10/старых Safari, где нет нормального скачивания файлов -->
-    <div class="export-overlay" id="exportOverlay">
-        <div class="export-box">
-            <strong>Экспорт текста</strong>
-            <p id="exportHelp">На старом iOS прямое сохранение .txt из веб-приложения ограничено. Можно скопировать текст или открыть его отдельной страницей.</p>
-            <textarea id="exportText" readonly></textarea>
-            <div class="export-actions">
-                <button class="action-btn" id="copyExportBtn">📋 Скопировать всё</button>
-                <button class="action-btn" id="openExportBtn">↗ Открыть в Safari для iCloud</button>
-                <button class="action-btn" id="closeExportBtn">Закрыть</button>
-            </div>
-            <div id="exportStatus"></div>
-        </div>
+        <textarea id="editor" placeholder="Start writing..."></textarea>
     </div>
 
     <script>
@@ -324,24 +244,14 @@
             var editor = document.getElementById('editor');
             var toolbar = document.getElementById('toolbar');
             var toggleBtn = document.getElementById('toggleBtn');
+
             var fontFamilySelect = document.getElementById('fontFamily');
             var fontSizeSelect = document.getElementById('fontSize');
             var textAlignSelect = document.getElementById('textAlign');
             var paddingSideSelect = document.getElementById('paddingSide');
+            var paddingVerticalSelect = document.getElementById('paddingVertical');
             var textColorInput = document.getElementById('textColor');
             var bgColorInput = document.getElementById('bgColor');
-            var saveTxtBtn = document.getElementById('saveTxtBtn');
-            var notesExportBtn = document.getElementById('notesExportBtn');
-            var fileInput = document.getElementById('fileInput');
-            var exportOverlay = document.getElementById('exportOverlay');
-            var exportText = document.getElementById('exportText');
-            var exportHelp = document.getElementById('exportHelp');
-            var exportStatus = document.getElementById('exportStatus');
-            var copyExportBtn = document.getElementById('copyExportBtn');
-            var openExportBtn = document.getElementById('openExportBtn');
-            var closeExportBtn = document.getElementById('closeExportBtn');
-            var pendingExportText = '';
-            var pendingExportName = '';
 
             function loadSettings() {
                 var savedText = localStorage.getItem('ipad_note_text_v2');
@@ -349,16 +259,19 @@
                 var savedFontSize = localStorage.getItem('ipad_note_font_size');
                 var savedTextAlign = localStorage.getItem('ipad_note_text_align');
                 var savedPaddingSide = localStorage.getItem('ipad_note_padding_side');
+                var savedPaddingVertical = localStorage.getItem('ipad_note_padding_vertical');
                 var savedTextColor = localStorage.getItem('ipad_note_text_color');
                 var savedBgColor = localStorage.getItem('ipad_note_bg_color');
 
-                if (savedText !== null) editor.value = savedText;
-                
+                if (savedText !== null) {
+                    editor.value = savedText;
+                }
+
                 if (savedFontFamily) {
                     fontFamilySelect.value = savedFontFamily;
                     editor.style.fontFamily = savedFontFamily;
                 }
-                
+
                 if (savedFontSize) {
                     fontSizeSelect.value = savedFontSize;
                     editor.style.fontSize = savedFontSize;
@@ -373,6 +286,12 @@
                     paddingSideSelect.value = savedPaddingSide;
                     editor.style.paddingLeft = savedPaddingSide;
                     editor.style.paddingRight = savedPaddingSide;
+                }
+
+                if (savedPaddingVertical) {
+                    paddingVerticalSelect.value = savedPaddingVertical;
+                    editor.style.paddingTop = savedPaddingVertical;
+                    editor.style.paddingBottom = savedPaddingVertical;
                 }
 
                 if (savedTextColor) {
@@ -392,6 +311,7 @@
                 localStorage.setItem('ipad_note_font_size', fontSizeSelect.value);
                 localStorage.setItem('ipad_note_text_align', textAlignSelect.value);
                 localStorage.setItem('ipad_note_padding_side', paddingSideSelect.value);
+                localStorage.setItem('ipad_note_padding_vertical', paddingVerticalSelect.value);
                 localStorage.setItem('ipad_note_text_color', textColorInput.value);
                 localStorage.setItem('ipad_note_bg_color', bgColorInput.value);
             }
@@ -419,6 +339,12 @@
                 saveSettings();
             });
 
+            paddingVerticalSelect.addEventListener('change', function() {
+                editor.style.paddingTop = this.value;
+                editor.style.paddingBottom = this.value;
+                saveSettings();
+            });
+
             textColorInput.addEventListener('change', function() {
                 editor.style.color = this.value;
                 saveSettings();
@@ -427,223 +353,6 @@
             bgColorInput.addEventListener('change', function() {
                 document.body.style.backgroundColor = this.value;
                 saveSettings();
-            });
-
-            // Определяем старый iOS. iPad 4 (A1458) работает на ветке iOS 10.
-            function getIOSMajorVersion() {
-                var ua = navigator.userAgent || '';
-                var match = ua.match(/OS (\d+)[_\.]/);
-                if (/iPad|iPhone|iPod/.test(ua) && match) {
-                    return parseInt(match[1], 10);
-                }
-                return 0;
-            }
-
-            function isOldIOS() {
-                var version = getIOSMajorVersion();
-                return version > 0 && version < 13;
-            }
-
-            function makeFileName() {
-                var d = new Date();
-                var year = d.getFullYear();
-                var month = ('0' + (d.getMonth() + 1)).slice(-2);
-                var day = ('0' + d.getDate()).slice(-2);
-                return 'note_' + year + '-' + month + '-' + day + '.txt';
-            }
-
-            function showExportFallback(text, fileName) {
-                pendingExportText = text;
-                pendingExportName = fileName;
-                exportText.value = text;
-                exportStatus.innerHTML = 'Имя файла: <b>' + fileName + '</b>';
-
-                if (isOldIOS()) {
-                    exportHelp.innerHTML = 'iOS 10 не поддерживает обычное HTML-скачивание .txt. Нажмите «Открыть в Safari для iCloud», затем в Safari нажмите «Поделиться» → «Добавить в iCloud Drive». Если такого пункта нет, используйте «Скопировать всё». Текст уже сохранён внутри редактора.';
-                } else {
-                    exportHelp.innerHTML = 'Браузер не смог скачать файл автоматически. Используйте один из резервных способов ниже.';
-                }
-                exportOverlay.className = 'export-overlay visible';
-            }
-
-            function hideExportFallback() {
-                exportOverlay.className = 'export-overlay';
-                exportStatus.innerHTML = '';
-            }
-
-            // Обработка загрузки файла. Настоящий input получает касание напрямую — это важно для старого iOS.
-            fileInput.addEventListener('change', function(e) {
-                var files = e.target.files;
-                var file = files && files.length ? files[0] : null;
-                if (!file) return;
-
-                if (typeof FileReader === 'undefined') {
-                    alert('Этот браузер не умеет читать выбранные файлы.');
-                    return;
-                }
-
-                var reader = new FileReader();
-                reader.onload = function(evt) {
-                    editor.value = evt.target.result || '';
-                    saveSettings();
-                    fileInput.value = '';
-                };
-                reader.onerror = function() {
-                    alert('Не удалось открыть файл. Попробуйте другой .txt файл.');
-                    fileInput.value = '';
-                };
-                reader.readAsText(file, 'UTF-8');
-            });
-
-            // Экспорт в Apple Notes для старого iOS:
-            // браузер не может программно создать заметку с готовым текстом,
-            // поэтому копируем весь текст в буфер и открываем приложение «Заметки».
-            notesExportBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-
-                var text = editor.value;
-                saveSettings();
-
-                // На iOS 10 execCommand('copy') надёжнее вызывать прямо
-                // из обработчика пользовательского нажатия.
-                var start = editor.selectionStart;
-                var end = editor.selectionEnd;
-                var copied = false;
-
-                editor.focus();
-                try {
-                    editor.setSelectionRange(0, editor.value.length);
-                    copied = !!(document.execCommand && document.execCommand('copy'));
-                } catch (copyError) {
-                    copied = false;
-                }
-
-                // По возможности возвращаем прежнее выделение.
-                try {
-                    editor.setSelectionRange(start || 0, end || 0);
-                } catch (selectionError) {}
-
-                if (!copied) {
-                    pendingExportText = text;
-                    pendingExportName = makeFileName();
-                    exportText.value = text;
-                    exportHelp.innerHTML = 'Safari не разрешил автоматическое копирование. Нажмите «Скопировать всё», затем откройте «Заметки» и вставьте текст.';
-                    exportStatus.innerHTML = 'Текст сохранён внутри редактора.';
-                    exportOverlay.className = 'export-overlay visible';
-                    return;
-                }
-
-                // Неформальная системная схема старых iOS: просто открывает Notes.
-                // Содержимое передать через неё нельзя — оно уже находится в буфере.
-                try {
-                    window.location.href = 'mobilenotes://';
-                } catch (notesError) {
-                    pendingExportText = text;
-                    pendingExportName = makeFileName();
-                    exportText.value = text;
-                    exportHelp.innerHTML = 'Текст скопирован. Откройте приложение «Заметки», создайте заметку и нажмите «Вставить».';
-                    exportStatus.innerHTML = 'Текст уже в буфере обмена.';
-                    exportOverlay.className = 'export-overlay visible';
-                }
-            });
-
-            // Сохранение без async/await — синтаксис совместим со старым Safari.
-            saveTxtBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                var text = editor.value;
-                var fileName = makeFileName();
-
-                // Текст в любом случае сохраняется локально в приложении.
-                saveSettings();
-
-                // iOS 10–12: download/Web Share для файла ненадёжны или отсутствуют.
-                if (isOldIOS()) {
-                    showExportFallback(text, fileName);
-                    return;
-                }
-
-                var blob;
-                try {
-                    blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-                } catch (blobError) {
-                    showExportFallback(text, fileName);
-                    return;
-                }
-
-                // Новые iOS: сначала пробуем системное «Поделиться» с файлом.
-                if (navigator.share && navigator.canShare && typeof File !== 'undefined') {
-                    try {
-                        var shareFile = new File([blob], fileName, { type: 'text/plain' });
-                        if (navigator.canShare({ files: [shareFile] })) {
-                            navigator.share({
-                                files: [shareFile],
-                                title: fileName
-                            }).then(function() {
-                                // Пользователь завершил системное меню.
-                            }).catch(function() {
-                                downloadBlobOrFallback(blob, text, fileName);
-                            });
-                            return;
-                        }
-                    } catch (shareError) {
-                        // Переходим к обычному скачиванию.
-                    }
-                }
-
-                downloadBlobOrFallback(blob, text, fileName);
-            });
-
-            function downloadBlobOrFallback(blob, text, fileName) {
-                var a = document.createElement('a');
-                if (!('download' in a) || !window.URL || !URL.createObjectURL) {
-                    showExportFallback(text, fileName);
-                    return;
-                }
-
-                var url = URL.createObjectURL(blob);
-                a.href = url;
-                a.download = fileName;
-                a.style.display = 'none';
-                document.body.appendChild(a);
-                a.click();
-
-                setTimeout(function() {
-                    if (a.parentNode) a.parentNode.removeChild(a);
-                    URL.revokeObjectURL(url);
-                }, 1500);
-            }
-
-            copyExportBtn.addEventListener('click', function() {
-                exportText.focus();
-                exportText.select();
-                try {
-                    var ok = document.execCommand && document.execCommand('copy');
-                    exportStatus.innerHTML = ok ? 'Текст скопирован. Теперь его можно вставить в Почту, Заметки или другое приложение.' : 'Текст выделен. Нажмите «Копировать» во всплывающем меню iOS.';
-                } catch (err) {
-                    exportStatus.innerHTML = 'Текст выделен. Нажмите «Копировать» во всплывающем меню iOS.';
-                }
-            });
-
-            openExportBtn.addEventListener('click', function() {
-                // iOS 10: открываем текст как отдельный документ в Safari.
-                // После этого можно использовать системное меню «Поделиться» → «Добавить в iCloud Drive».
-                var dataUrl = 'data:text/plain;charset=utf-8,' + encodeURIComponent(pendingExportText);
-                try {
-                    var opened = window.open(dataUrl, '_blank');
-                    if (!opened) window.location.href = dataUrl;
-                } catch (err) {
-                    try {
-                        window.location.href = dataUrl;
-                    } catch (err2) {
-                        exportText.focus();
-                        exportText.select();
-                        exportStatus.innerHTML = 'Не удалось открыть текст в Safari. Текст выделен для ручного копирования.';
-                    }
-                }
-            });
-
-            closeExportBtn.addEventListener('click', function() {
-                hideExportFallback();
             });
 
             toggleBtn.addEventListener('click', function() {
