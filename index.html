@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <!-- ВАЖНО ДЛЯ iOS 10: не включаем standalone/PWA. Иконка с Home Screen открывает страницу в Safari, где Document Picker работает полнее. -->
+    <meta name="apple-mobile-web-app-capable" content="no">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>WRITING</title>
+    <title>WRITING Заметки</title>
     
     <!-- ИКОНКИ ДЛЯ ЭКРАНА «ДОМОЙ» И ВКЛАДКИ БРАУЗЕРА -->
     <link rel="apple-touch-icon" href="logo.png">
@@ -292,9 +293,10 @@
             <div class="toolbar-section">
                 <!-- Старый iOS: настоящий input расположен поверх кнопки и получает касание напрямую -->
                 <span class="action-btn file-picker" id="openBtn">📂 Открыть .txt
-                    <input type="file" id="fileInput">
+                    <input type="file" id="fileInput" accept="text/plain,.txt">
                 </span>
                 <button class="action-btn" id="saveTxtBtn">💾 Сохранить .txt</button>
+                <div style="width:100%;font-size:11px;color:#ddd;text-align:center;padding:2px 8px 0;">iOS 10: для .txt нужен iCloud Drive; запуск с иконки оставлен в Safari, не в PWA-режиме.</div>
             </div>
         </div>
 
@@ -309,7 +311,7 @@
             <textarea id="exportText" readonly></textarea>
             <div class="export-actions">
                 <button class="action-btn" id="copyExportBtn">📋 Скопировать всё</button>
-                <button class="action-btn" id="openExportBtn">↗ Открыть как текст</button>
+                <button class="action-btn" id="openExportBtn">↗ Открыть в Safari для iCloud</button>
                 <button class="action-btn" id="closeExportBtn">Закрыть</button>
             </div>
             <div id="exportStatus"></div>
@@ -455,7 +457,7 @@
                 exportStatus.innerHTML = 'Имя файла: <b>' + fileName + '</b>';
 
                 if (isOldIOS()) {
-                    exportHelp.innerHTML = 'На iOS 10 прямое скачивание .txt из приложения с экрана «Домой» не поддерживается. Текст уже сохранён внутри приложения. Для переноса наружу используйте «Скопировать всё» или «Открыть как текст».';
+                    exportHelp.innerHTML = 'iOS 10 не поддерживает обычное HTML-скачивание .txt. Нажмите «Открыть в Safari для iCloud», затем в Safari нажмите «Поделиться» → «Добавить в iCloud Drive». Если такого пункта нет, используйте «Скопировать всё». Текст уже сохранён внутри редактора.';
                 } else {
                     exportHelp.innerHTML = 'Браузер не смог скачать файл автоматически. Используйте один из резервных способов ниже.';
                 }
@@ -569,22 +571,19 @@
             });
 
             openExportBtn.addEventListener('click', function() {
+                // iOS 10: открываем текст как отдельный документ в Safari.
+                // После этого можно использовать системное меню «Поделиться» → «Добавить в iCloud Drive».
                 var dataUrl = 'data:text/plain;charset=utf-8,' + encodeURIComponent(pendingExportText);
-                var opened = null;
                 try {
-                    opened = window.open(dataUrl, '_blank');
+                    var opened = window.open(dataUrl, '_blank');
+                    if (!opened) window.location.href = dataUrl;
                 } catch (err) {
-                    opened = null;
-                }
-
-                if (!opened) {
-                    // Перед уходом текст уже сохранён в localStorage.
                     try {
                         window.location.href = dataUrl;
                     } catch (err2) {
                         exportText.focus();
                         exportText.select();
-                        exportStatus.innerHTML = 'Не удалось открыть отдельную страницу. Текст выделен для ручного копирования.';
+                        exportStatus.innerHTML = 'Не удалось открыть текст в Safari. Текст выделен для ручного копирования.';
                     }
                 }
             });
