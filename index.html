@@ -109,6 +109,9 @@
             font-size: 13px;
             margin: 4px 6px;
             cursor: pointer;
+            display: inline-block;
+            text-decoration: none;
+            text-align: center;
         }
         .action-btn:active {
             background-color: #666;
@@ -222,9 +225,9 @@
             </div>
 
             <div class="toolbar-section">
-                <button class="action-btn" id="openBtn">📂 Открыть .txt</button>
+                <!-- Заменен button на label для обхода блокировок iOS PWA -->
+                <label for="fileInput" class="action-btn" id="openBtn">📂 Открыть .txt</label>
                 <button class="action-btn" id="saveTxtBtn">💾 Сохранить .txt</button>
-                <!-- Поддержка универсального Mime-type для отмены блокировок iOS -->
                 <input type="file" id="fileInput" accept="text/plain, text/*, .txt">
             </div>
         </div>
@@ -243,7 +246,6 @@
             var paddingSideSelect = document.getElementById('paddingSide');
             var textColorInput = document.getElementById('textColor');
             var bgColorInput = document.getElementById('bgColor');
-            var openBtn = document.getElementById('openBtn');
             var saveTxtBtn = document.getElementById('saveTxtBtn');
             var fileInput = document.getElementById('fileInput');
 
@@ -333,12 +335,7 @@
                 saveSettings();
             });
 
-            // Открытие файла
-            openBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                fileInput.click();
-            });
-
+            // Обработка загрузки файла (Открытие файла)
             fileInput.addEventListener('change', function(e) {
                 var file = e.target.files[0];
                 if (!file) return;
@@ -349,18 +346,34 @@
                     saveSettings();
                 };
                 reader.readAsText(file);
-                fileInput.value = '';
+                fileInput.value = ''; // Сброс, чтобы можно было загрузить тот же файл еще раз
             });
 
             // Надёжное сохранение файлов на iOS/iPadOS
-            saveTxtBtn.addEventListener('click', function(e) {
+            saveTxtBtn.addEventListener('click', async function(e) {
                 e.preventDefault();
                 var text = editor.value;
                 var fileName = 'note_' + new Date().toISOString().slice(0, 10) + '.txt';
-                
                 var blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+
+                // 1. Способ для iOS PWA: вызывает родное меню «Поделиться», где есть «Сохранить в Файлы»
+                if (navigator.share) {
+                    try {
+                        var file = new File([blob], fileName, { type: 'text/plain' });
+                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                            await navigator.share({
+                                files: [file],
+                                title: fileName
+                            });
+                            return; // Успешно открыли системное меню — прерываем выполнение
+                        }
+                    } catch (err) {
+                        console.log("Ошибка Share API:", err);
+                    }
+                }
+
+                // 2. Стандартный способ (запасной вариант для обычных браузеров/ПК)
                 var url = URL.createObjectURL(blob);
-                
                 var a = document.createElement('a');
                 a.href = url;
                 a.download = fileName;
