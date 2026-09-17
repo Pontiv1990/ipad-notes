@@ -116,8 +116,73 @@
         .action-btn:active {
             background-color: #666;
         }
+        /* На старом iOS input[type=file] нельзя прятать через display:none:
+           пользователь должен нажимать именно на настоящий input. */
+        .file-picker {
+            position: relative;
+            overflow: hidden;
+        }
         #fileInput {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            font-size: 60px;
+            cursor: pointer;
+            display: block;
+        }
+
+        .export-overlay {
             display: none;
+            position: fixed;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.72);
+            padding: 18px;
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .export-overlay.visible {
+            display: block;
+        }
+        .export-box {
+            max-width: 720px;
+            margin: 20px auto;
+            padding: 14px;
+            background: #2d2d2d;
+            color: #fff;
+            border: 1px solid #777;
+            border-radius: 6px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        .export-box p {
+            margin: 8px 0 12px 0;
+        }
+        #exportText {
+            width: 100%;
+            height: 220px;
+            padding: 10px;
+            border: 1px solid #777;
+            background: #fff;
+            color: #000;
+            font: 16px/1.4 monospace;
+            text-align: left;
+            -webkit-user-select: text;
+            user-select: text;
+        }
+        .export-actions {
+            margin-top: 10px;
+        }
+        #exportStatus {
+            min-height: 20px;
+            color: #ddd;
+            margin-top: 8px;
         }
         .toggle-btn {
             position: absolute;
@@ -225,14 +290,30 @@
             </div>
 
             <div class="toolbar-section">
-                <!-- Заменен button на label для обхода блокировок iOS PWA -->
-                <label for="fileInput" class="action-btn" id="openBtn">📂 Открыть .txt</label>
+                <!-- Старый iOS: настоящий input расположен поверх кнопки и получает касание напрямую -->
+                <span class="action-btn file-picker" id="openBtn">📂 Открыть .txt
+                    <input type="file" id="fileInput">
+                </span>
                 <button class="action-btn" id="saveTxtBtn">💾 Сохранить .txt</button>
-                <input type="file" id="fileInput" accept="text/plain, text/*, .txt">
             </div>
         </div>
 
         <textarea id="editor" placeholder="Начните писать..."></textarea>
+    </div>
+
+    <!-- Резервный экспорт для iOS 10/старых Safari, где нет нормального скачивания файлов -->
+    <div class="export-overlay" id="exportOverlay">
+        <div class="export-box">
+            <strong>Экспорт текста</strong>
+            <p id="exportHelp">На старом iOS прямое сохранение .txt из веб-приложения ограничено. Можно скопировать текст или открыть его отдельной страницей.</p>
+            <textarea id="exportText" readonly></textarea>
+            <div class="export-actions">
+                <button class="action-btn" id="copyExportBtn">📋 Скопировать всё</button>
+                <button class="action-btn" id="openExportBtn">↗ Открыть как текст</button>
+                <button class="action-btn" id="closeExportBtn">Закрыть</button>
+            </div>
+            <div id="exportStatus"></div>
+        </div>
     </div>
 
     <script>
@@ -248,6 +329,15 @@
             var bgColorInput = document.getElementById('bgColor');
             var saveTxtBtn = document.getElementById('saveTxtBtn');
             var fileInput = document.getElementById('fileInput');
+            var exportOverlay = document.getElementById('exportOverlay');
+            var exportText = document.getElementById('exportText');
+            var exportHelp = document.getElementById('exportHelp');
+            var exportStatus = document.getElementById('exportStatus');
+            var copyExportBtn = document.getElementById('copyExportBtn');
+            var openExportBtn = document.getElementById('openExportBtn');
+            var closeExportBtn = document.getElementById('closeExportBtn');
+            var pendingExportText = '';
+            var pendingExportName = '';
 
             function loadSettings() {
                 var savedText = localStorage.getItem('ipad_note_text_v2');
@@ -335,46 +425,126 @@
                 saveSettings();
             });
 
-            // Обработка загрузки файла (Открытие файла)
+            // Определяем старый iOS. iPad 4 (A1458) работает на ветке iOS 10.
+            function getIOSMajorVersion() {
+                var ua = navigator.userAgent || '';
+                var match = ua.match(/OS (\d+)[_\.]/);
+                if (/iPad|iPhone|iPod/.test(ua) && match) {
+                    return parseInt(match[1], 10);
+                }
+                return 0;
+            }
+
+            function isOldIOS() {
+                var version = getIOSMajorVersion();
+                return version > 0 && version < 13;
+            }
+
+            function makeFileName() {
+                var d = new Date();
+                var year = d.getFullYear();
+                var month = ('0' + (d.getMonth() + 1)).slice(-2);
+                var day = ('0' + d.getDate()).slice(-2);
+                return 'note_' + year + '-' + month + '-' + day + '.txt';
+            }
+
+            function showExportFallback(text, fileName) {
+                pendingExportText = text;
+                pendingExportName = fileName;
+                exportText.value = text;
+                exportStatus.innerHTML = 'Имя файла: <b>' + fileName + '</b>';
+
+                if (isOldIOS()) {
+                    exportHelp.innerHTML = 'На iOS 10 прямое скачивание .txt из приложения с экрана «Домой» не поддерживается. Текст уже сохранён внутри приложения. Для переноса наружу используйте «Скопировать всё» или «Открыть как текст».';
+                } else {
+                    exportHelp.innerHTML = 'Браузер не смог скачать файл автоматически. Используйте один из резервных способов ниже.';
+                }
+                exportOverlay.className = 'export-overlay visible';
+            }
+
+            function hideExportFallback() {
+                exportOverlay.className = 'export-overlay';
+                exportStatus.innerHTML = '';
+            }
+
+            // Обработка загрузки файла. Настоящий input получает касание напрямую — это важно для старого iOS.
             fileInput.addEventListener('change', function(e) {
-                var file = e.target.files[0];
+                var files = e.target.files;
+                var file = files && files.length ? files[0] : null;
                 if (!file) return;
+
+                if (typeof FileReader === 'undefined') {
+                    alert('Этот браузер не умеет читать выбранные файлы.');
+                    return;
+                }
 
                 var reader = new FileReader();
                 reader.onload = function(evt) {
-                    editor.value = evt.target.result;
+                    editor.value = evt.target.result || '';
                     saveSettings();
+                    fileInput.value = '';
                 };
-                reader.readAsText(file);
-                fileInput.value = ''; // Сброс, чтобы можно было загрузить тот же файл еще раз
+                reader.onerror = function() {
+                    alert('Не удалось открыть файл. Попробуйте другой .txt файл.');
+                    fileInput.value = '';
+                };
+                reader.readAsText(file, 'UTF-8');
             });
 
-            // Надёжное сохранение файлов на iOS/iPadOS
-            saveTxtBtn.addEventListener('click', async function(e) {
+            // Сохранение без async/await — синтаксис совместим со старым Safari.
+            saveTxtBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 var text = editor.value;
-                var fileName = 'note_' + new Date().toISOString().slice(0, 10) + '.txt';
-                var blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+                var fileName = makeFileName();
 
-                // 1. Способ для iOS PWA: вызывает родное меню «Поделиться», где есть «Сохранить в Файлы»
-                if (navigator.share) {
+                // Текст в любом случае сохраняется локально в приложении.
+                saveSettings();
+
+                // iOS 10–12: download/Web Share для файла ненадёжны или отсутствуют.
+                if (isOldIOS()) {
+                    showExportFallback(text, fileName);
+                    return;
+                }
+
+                var blob;
+                try {
+                    blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+                } catch (blobError) {
+                    showExportFallback(text, fileName);
+                    return;
+                }
+
+                // Новые iOS: сначала пробуем системное «Поделиться» с файлом.
+                if (navigator.share && navigator.canShare && typeof File !== 'undefined') {
                     try {
-                        var file = new File([blob], fileName, { type: 'text/plain' });
-                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                            await navigator.share({
-                                files: [file],
+                        var shareFile = new File([blob], fileName, { type: 'text/plain' });
+                        if (navigator.canShare({ files: [shareFile] })) {
+                            navigator.share({
+                                files: [shareFile],
                                 title: fileName
+                            }).then(function() {
+                                // Пользователь завершил системное меню.
+                            }).catch(function() {
+                                downloadBlobOrFallback(blob, text, fileName);
                             });
-                            return; // Успешно открыли системное меню — прерываем выполнение
+                            return;
                         }
-                    } catch (err) {
-                        console.log("Ошибка Share API:", err);
+                    } catch (shareError) {
+                        // Переходим к обычному скачиванию.
                     }
                 }
 
-                // 2. Стандартный способ (запасной вариант для обычных браузеров/ПК)
-                var url = URL.createObjectURL(blob);
+                downloadBlobOrFallback(blob, text, fileName);
+            });
+
+            function downloadBlobOrFallback(blob, text, fileName) {
                 var a = document.createElement('a');
+                if (!('download' in a) || !window.URL || !URL.createObjectURL) {
+                    showExportFallback(text, fileName);
+                    return;
+                }
+
+                var url = URL.createObjectURL(blob);
                 a.href = url;
                 a.download = fileName;
                 a.style.display = 'none';
@@ -382,9 +552,45 @@
                 a.click();
 
                 setTimeout(function() {
-                    document.body.removeChild(a);
+                    if (a.parentNode) a.parentNode.removeChild(a);
                     URL.revokeObjectURL(url);
-                }, 1000);
+                }, 1500);
+            }
+
+            copyExportBtn.addEventListener('click', function() {
+                exportText.focus();
+                exportText.select();
+                try {
+                    var ok = document.execCommand && document.execCommand('copy');
+                    exportStatus.innerHTML = ok ? 'Текст скопирован. Теперь его можно вставить в Почту, Заметки или другое приложение.' : 'Текст выделен. Нажмите «Копировать» во всплывающем меню iOS.';
+                } catch (err) {
+                    exportStatus.innerHTML = 'Текст выделен. Нажмите «Копировать» во всплывающем меню iOS.';
+                }
+            });
+
+            openExportBtn.addEventListener('click', function() {
+                var dataUrl = 'data:text/plain;charset=utf-8,' + encodeURIComponent(pendingExportText);
+                var opened = null;
+                try {
+                    opened = window.open(dataUrl, '_blank');
+                } catch (err) {
+                    opened = null;
+                }
+
+                if (!opened) {
+                    // Перед уходом текст уже сохранён в localStorage.
+                    try {
+                        window.location.href = dataUrl;
+                    } catch (err2) {
+                        exportText.focus();
+                        exportText.select();
+                        exportStatus.innerHTML = 'Не удалось открыть отдельную страницу. Текст выделен для ручного копирования.';
+                    }
+                }
+            });
+
+            closeExportBtn.addEventListener('click', function() {
+                hideExportFallback();
             });
 
             toggleBtn.addEventListener('click', function() {
