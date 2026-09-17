@@ -61,7 +61,7 @@
             z-index: 10;
             border-bottom: 1px solid rgba(255,255,255,0.18);
             overflow: hidden;
-            max-height: 300px;
+            max-height: 380px;
             -webkit-transition: max-height 0.25s ease, padding 0.25s ease;
             transition: max-height 0.25s ease, padding 0.25s ease;
         }
@@ -158,11 +158,46 @@
             <div class="setting-item">
                 <label for="fontFamily">Font</label>
                 <select id="fontFamily">
-                    <option value="-apple-system, Helvetica Neue, Helvetica, Arial, sans-serif">System</option>
+                    <option value="-apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif">System</option>
+                    <option value="'Academy Engraved LET', serif">Academy Engraved LET</option>
+                    <option value="'American Typewriter', serif">American Typewriter</option>
+                    <option value="Arial, sans-serif">Arial</option>
+                    <option value="'Arial Rounded MT Bold', Arial, sans-serif">Arial Rounded MT Bold</option>
+                    <option value="Avenir, sans-serif">Avenir</option>
+                    <option value="'Avenir Next', sans-serif">Avenir Next</option>
+                    <option value="'Avenir Next Condensed', sans-serif">Avenir Next Condensed</option>
+                    <option value="Baskerville, serif">Baskerville</option>
+                    <option value="'Bodoni 72', serif">Bodoni 72</option>
+                    <option value="'Bodoni 72 Oldstyle', serif">Bodoni 72 Oldstyle</option>
+                    <option value="'Bodoni 72 Smallcaps', serif">Bodoni 72 Smallcaps</option>
+                    <option value="'Bradley Hand', cursive">Bradley Hand</option>
+                    <option value="'Chalkboard SE', cursive">Chalkboard SE</option>
+                    <option value="Chalkduster, cursive">Chalkduster</option>
+                    <option value="Cochin, serif">Cochin</option>
+                    <option value="Copperplate, serif">Copperplate</option>
+                    <option value="Courier, monospace">Courier</option>
+                    <option value="'Courier New', Courier, monospace">Courier New</option>
+                    <option value="Didot, serif">Didot</option>
+                    <option value="'Euphemia UCAS', sans-serif">Euphemia UCAS</option>
+                    <option value="Futura, sans-serif">Futura</option>
                     <option value="Georgia, serif">Georgia</option>
-                    <option value="'Courier New', Courier, monospace">Monospace</option>
+                    <option value="'Gill Sans', sans-serif">Gill Sans</option>
+                    <option value="Helvetica, Arial, sans-serif">Helvetica</option>
+                    <option value="'Helvetica Neue', Helvetica, Arial, sans-serif">Helvetica Neue</option>
+                    <option value="'Hoefler Text', serif">Hoefler Text</option>
+                    <option value="Menlo, monospace">Menlo</option>
+                    <option value="'Marker Felt', cursive">Marker Felt</option>
+                    <option value="Noteworthy, cursive">Noteworthy</option>
+                    <option value="Optima, sans-serif">Optima</option>
+                    <option value="Palatino, serif">Palatino</option>
+                    <option value="Papyrus, fantasy">Papyrus</option>
+                    <option value="'Party LET', cursive">Party LET</option>
+                    <option value="'Savoye LET', cursive">Savoye LET</option>
+                    <option value="'Snell Roundhand', cursive">Snell Roundhand</option>
+                    <option value="'Times New Roman', Times, serif">Times New Roman</option>
                     <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
                     <option value="Verdana, sans-serif">Verdana</option>
+                    <option value="Zapfino, cursive">Zapfino</option>
                 </select>
             </div>
 
@@ -175,6 +210,38 @@
                     <option value="24px">24 px</option>
                     <option value="28px">28 px</option>
                     <option value="32px">32 px</option>
+                </select>
+            </div>
+
+            <div class="setting-item">
+                <label for="lineHeight">Line spacing</label>
+                <select id="lineHeight">
+                    <option value="1">1.0</option>
+                    <option value="1.1">1.1</option>
+                    <option value="1.2">1.2</option>
+                    <option value="1.3">1.3</option>
+                    <option value="1.4">1.4</option>
+                    <option value="1.5" selected>1.5</option>
+                    <option value="1.6">1.6</option>
+                    <option value="1.75">1.75</option>
+                    <option value="2">2.0</option>
+                </select>
+            </div>
+
+            <div class="setting-item">
+                <label for="letterSpacing">Letter spacing</label>
+                <select id="letterSpacing">
+                    <option value="-1px">-1.0 px</option>
+                    <option value="-0.5px">-0.5 px</option>
+                    <option value="0px" selected>0 px</option>
+                    <option value="0.25px">0.25 px</option>
+                    <option value="0.5px">0.5 px</option>
+                    <option value="0.75px">0.75 px</option>
+                    <option value="1px">1.0 px</option>
+                    <option value="1.5px">1.5 px</option>
+                    <option value="2px">2.0 px</option>
+                    <option value="3px">3.0 px</option>
+                    <option value="4px">4.0 px</option>
                 </select>
             </div>
 
@@ -250,6 +317,8 @@
 
             var fontFamilySelect = document.getElementById('fontFamily');
             var fontSizeSelect = document.getElementById('fontSize');
+            var lineHeightSelect = document.getElementById('lineHeight');
+            var letterSpacingSelect = document.getElementById('letterSpacing');
             var textAlignSelect = document.getElementById('textAlign');
             var paddingSideSelect = document.getElementById('paddingSide');
             var paddingVerticalSelect = document.getElementById('paddingVertical');
@@ -260,6 +329,8 @@
                 var savedText = localStorage.getItem('ipad_note_text_v2');
                 var savedFontFamily = localStorage.getItem('ipad_note_font_family');
                 var savedFontSize = localStorage.getItem('ipad_note_font_size');
+                var savedLineHeight = localStorage.getItem('ipad_note_line_height');
+                var savedLetterSpacing = localStorage.getItem('ipad_note_letter_spacing');
                 var savedTextAlign = localStorage.getItem('ipad_note_text_align');
                 var savedPaddingSide = localStorage.getItem('ipad_note_padding_side');
                 var savedPaddingVertical = localStorage.getItem('ipad_note_padding_vertical');
@@ -278,6 +349,16 @@
                 if (savedFontSize) {
                     fontSizeSelect.value = savedFontSize;
                     editor.style.fontSize = savedFontSize;
+                }
+
+                if (savedLineHeight) {
+                    lineHeightSelect.value = savedLineHeight;
+                    editor.style.lineHeight = savedLineHeight;
+                }
+
+                if (savedLetterSpacing) {
+                    letterSpacingSelect.value = savedLetterSpacing;
+                    editor.style.letterSpacing = savedLetterSpacing;
                 }
 
                 if (savedTextAlign) {
@@ -312,6 +393,8 @@
                 localStorage.setItem('ipad_note_text_v2', editor.value);
                 localStorage.setItem('ipad_note_font_family', fontFamilySelect.value);
                 localStorage.setItem('ipad_note_font_size', fontSizeSelect.value);
+                localStorage.setItem('ipad_note_line_height', lineHeightSelect.value);
+                localStorage.setItem('ipad_note_letter_spacing', letterSpacingSelect.value);
                 localStorage.setItem('ipad_note_text_align', textAlignSelect.value);
                 localStorage.setItem('ipad_note_padding_side', paddingSideSelect.value);
                 localStorage.setItem('ipad_note_padding_vertical', paddingVerticalSelect.value);
@@ -328,6 +411,16 @@
 
             fontSizeSelect.addEventListener('change', function() {
                 editor.style.fontSize = this.value;
+                saveSettings();
+            });
+
+            lineHeightSelect.addEventListener('change', function() {
+                editor.style.lineHeight = this.value;
+                saveSettings();
+            });
+
+            letterSpacingSelect.addEventListener('change', function() {
+                editor.style.letterSpacing = this.value;
                 saveSettings();
             });
 
